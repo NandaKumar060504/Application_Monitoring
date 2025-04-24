@@ -1,0 +1,166 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server kafka:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka-init
+    depends_on:
+      - kafka
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka...' &&
+        cub kafka-ready -b kafka:9092 1 60 &&
+        kafka-topics --create --if-not-exists --topic api_logs --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 &&
+        kafka-topics --create --if-not-exists --topic error_logs --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 &&
+        kafka-topics --create --if-not-exists --topic performance_logs --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 &&
+        echo 'Kafka topics created successfully.'"
+    networks:
+      - app_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: logs_db
+      MYSQL_USER: log_user
+      MYSQL_PASSWORD: log_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api_server:
+    build:
+      context: ./api_server
+    container_name: api_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./api_server:/app
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    networks:
+      - app_network
+    depends_on:
+      - kafka-init
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  log_producer:
+    build:
+      context: ./log_producer
+    container_name: log_producer
+    depends_on:
+      - api_server
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - API_LOGS_TOPIC=api_logs
+      - ERROR_LOGS_TOPIC=error_logs
+      - PERFORMANCE_LOGS_TOPIC=performance_logs
+    networks:
+      - app_network
+    command: python producer.py
+
+  workload_simulator:
+    build:
+      context: ./workload_simulator
+    container_name: workload_simulator
+    depends_on:
+      - api_server
+    networks:
+      - app_network
+    command: sh -c "sleep 20 && python simulator.py"
+
+  log_consumer:
+    build:
+      context: ./log_consumer
+      dockerfile: Dockerfile
+    container_name: log_consumer
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: on-failure
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: api_logs
+      DB_HOST: mysql
+      DB_NAME: logs_db
+      DB_USER: log_user
+      DB_PASS: log_pass
+      DB_PORT: 3306
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: grafana
+    ports:
+      - "3010:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - mysql
+    networks:
+      - app_network
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  grafana_data:
