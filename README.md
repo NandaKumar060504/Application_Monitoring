@@ -1,7 +1,6 @@
 # 📊 Application Monitoring Dashboard
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/NandaKumar060504/Application_Monitoring)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Dockerized](https://img.shields.io/badge/docker-ready-blue)](https://www.docker.com/)
 
 A real-time **Log Analytics Platform** that ingests, stores, and visualizes logs and metrics using a modern containerized stack. Built for scalable application monitoring.
