@@ -1,27 +1,39 @@
 # 📊 Application Monitoring Dashboard
 
-This project is a **Log Analytics Platform** designed to collect, process, and visualize log data in real-time using Dockerized components. It features real-time log ingestion, structured storage, and insightful dashboards.
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/NandaKumar060504/Application_Monitoring)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Dockerized](https://img.shields.io/badge/docker-ready-blue)](https://www.docker.com/)
+
+A real-time **Log Analytics Platform** that ingests, stores, and visualizes logs and metrics using a modern containerized stack. Built for scalable application monitoring.
+
+---
 
 ## 🚀 Project Overview
 
-The platform leverages:
+The platform includes:
 
-- **Apache Kafka** for real-time log ingestion
-- **Relational Databases** for storing processed log data
-- **Grafana** for querying and visualizing logs and metrics
+- **Kafka** for real-time log ingestion
+- **Relational DB(s)** for structured log storage
+- **Grafana** for dashboard creation and visualization
+- Entire stack is containerized using **Docker**
+
+---
 
 ## ✅ Functional Requirements
 
-- 🔁 **Request Count per Endpoint**: Tracks how many times each API endpoint is called.
-- ⏱ **Response Time Trends**: Shows latency patterns over time.
-- ❌ **Frequent Errors**: Identifies and highlights common application errors.
-- 📺 **Live Log Feed**: Displays logs in real-time for monitoring.
+- 🔁 **Request Count per Endpoint**
+- ⏱ **Response Time Trends**
+- ❌ **Most Frequent Application Errors**
+- 📺 **Live Real-Time Logs**
 
-*You can add more dashboards to enhance monitoring based on your needs.*
+---
 
 ## ⚙️ Non-Functional Requirements
 
-- All components are containerized with **Docker** for portability and scalability.
+- Full containerization for all components via Docker
+- Easily deployable and scalable microservices architecture
+
+---
 
 ## 🧰 Technology Stack
 
@@ -30,47 +42,43 @@ The platform leverages:
 | Containerization | Docker          |
 | Message Broker   | Apache Kafka    |
 | Visualization    | Grafana         |
-| Optional DBs     | Prometheus, Loki|
+|  DataBases       |    Mysql        |
+
+---
 
 ## 🛠️ Implementation Steps
 
 ### Week 1: Infrastructure & API Setup
 
-- Develop or use a REST API server (5–10 endpoints).
-- Generate API requests with a load script.
-- Set up Kafka topics for different log types.
-- Implement a Kafka producer to push logs.
-- Dockerize all components.
+- Develop or use a REST API server (5–10 endpoints)
+- Generate API requests to simulate load
+- Kafka setup with topics for log types
+- Kafka producer for log ingestion
+- Docker setup for all services
 
 ### Week 2: Log Processing & Storage
 
-- Build a Kafka consumer to process logs and store them.
-- Design schema and configure databases.
+- Kafka consumer for log processing
+- Database schema design and storage implementation
 
-### Week 3: Visualization
+### Week 3: Dashboard Visualization
 
-- Connect Grafana to the database.
-- Write queries for dashboard metrics.
-- Configure alerting/monitoring panels.
-
-## 📚 Resources
-
-- [json-server (REST API mock)](https://github.com/typicode/json-server)
-- [Kafka on Docker (Official Docs)](https://docs.docker.com/guides/kafka/)
-- [Confluent Kafka Tutorials](https://developer.confluent.io/confluent-tutorials/kafka-on-docker/)
-- [Prometheus](https://prometheus.io/)
-- [Loki (for logs)](https://grafana.com/docs/loki/latest/)
-- [ELK Stack Overview](https://elastic-stack.readthedocs.io/en/latest/introduction.html)
-- [PLG Stack Intro](https://raman-pandey.medium.com/plg-prometheus-loki-grafana-stack-for-apps-monitoring-eef8dc702da1)
-
-## 📌 Notes
-
-- You can use any language/framework to build your API.
-- Stack is customizable — feel free to integrate better-suited tools.
-- Explore alternative stacks like ELK or PLG based on use case.
+- Connect Grafana to DB
+- Create metric-based dashboards
+- Implement monitoring panels
 
 ---
 
-> 📂 Once you're ready, push your files and this `README.md` to GitHub for a complete and professional repo!
+## 📦 Deployment Instructions
 
-Let me know if you'd like badges, diagrams, or deployment instructions added!
+### 1. Clone the Repository
+```bash
+git clone https://github.com/NandaKumar060504/Application_Monitoring.git
+cd Application_Monitoring
+docker-compose up --build
+
+## Team :
+1. Nanda Kumar T (PES1UG22CS375)
+2. P Ashish (PES1UG22CS404)
+3. Prajwal N P (PES1UG22CS423)
+4. Pavan T R (PES1UG22CS411)
